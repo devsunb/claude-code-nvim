@@ -147,24 +147,23 @@ end
 
 -- Register all user commands and keybindings
 function M.register_commands()
-	-- Create commands
-	local commands = {
-		{ "ClaudeReview", "review_selection", "Review selected code with Claude", true },
-		{ "ClaudeCommit", "generate_commit_message", "Generate git commit message with Claude", false },
-		{ "ClaudePR", "generate_pr_description", "Generate PR description with Claude", false },
-		{ "ClaudeExplain", "explain_selection", "Explain selected code with Claude", true },
-		{ "ClaudeRefactor", "refactor_selection", "Refactor selected code with Claude", true },
-		{ "ClaudeDebug", "debug_code", "Debug code with Claude", true },
-		{ "ClaudeTest", "generate_tests", "Generate tests with Claude", true },
-		{ "ClaudeMemory", "open_memory_file", "Edit Claude Memory file", false },
-		{ "ClaudeCodebase", "explain_codebase", "Get codebase overview with Claude", false },
+  -- stylua: ignore
+	local cmds = {
+		{ name = "ClaudeReview", fn = "review_selection", desc = "Review selected code with Claude", range = true },
+		{ name = "ClaudeCommit", fn = "generate_commit_message", desc = "Generate git commit message with Claude", range = false },
+		{ name = "ClaudePR", fn = "generate_pr_description", desc = "Generate PR description with Claude", range = false },
+		{ name = "ClaudeExplain", fn = "explain_selection", desc = "Explain selected code with Claude", range = true },
+		{ name = "ClaudeRefactor", fn = "refactor_selection", desc = "Refactor selected code with Claude", range = true },
+		{ name = "ClaudeDebug", fn = "debug_code", desc = "Debug code with Claude", range = true },
+		{ name = "ClaudeTest", fn = "generate_tests", desc = "Generate tests with Claude", range = true },
+		{ name = "ClaudeMemory", fn = "open_memory_file", desc = "Edit Claude Memory file", range = false },
+		{ name = "ClaudeCodebase", fn = "explain_codebase", desc = "Get codebase overview with Claude", range = false },
 	}
 
-	for _, cmd in ipairs(commands) do
-		local command_name, function_name, description, range = unpack(cmd)
-		vim.api.nvim_create_user_command(command_name, function(opts)
-			M[function_name](opts)
-		end, { range = range, desc = description })
+	for _, cmd in ipairs(cmds) do
+		vim.api.nvim_create_user_command(cmd.name, function(opts)
+			M[cmd.fn](opts)
+		end, { range = cmd.range, desc = cmd.desc })
 	end
 
 	-- Create the Claude command with args support

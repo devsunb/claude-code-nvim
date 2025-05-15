@@ -5,8 +5,8 @@
 -- Load submodules
 local templates = require("claude-code.templates")
 local cli = require("claude-code.cli")
-local ui = require("claude-code.ui")
 local commands = require("claude-code.commands")
+local ui = require("claude-code.ui")
 
 local M = {}
 
@@ -74,6 +74,9 @@ local config = {
 
 	-- Whether to use default keymaps
 	use_default_keymaps = false,
+
+	-- Spinner stop notify timeout in milliseconds
+	spinner_timeout = 1000,
 }
 
 -- Helper function to validate configuration

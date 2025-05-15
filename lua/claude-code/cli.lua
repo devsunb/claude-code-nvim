@@ -1,6 +1,7 @@
 -- Claude Code CLI interactions
 -- Handles running commands and processing results
 
+local spinner = require("claude-code.spinner")
 local ui = require("claude-code.ui")
 
 local M = {}
@@ -431,10 +432,8 @@ function M.run_claude_cli(prompt, callback)
 	-- Log the command and arguments for debugging
 	log_claude_command(config.claude_path, args, prompt)
 
-	-- Show initial notification
-	vim.schedule(function()
-		ui.notify("Running Claude Code...", vim.log.levels.INFO)
-	end)
+	-- Show spinner while waiting for response
+	spinner.start("Running...")
 
 	-- Store both stdout and stderr
 	local stdout_results = {}
@@ -480,6 +479,7 @@ function M.run_claude_cli(prompt, callback)
 
 			-- Skip further processing if timed out
 			if timed_out then
+				spinner.stop("Claude Code timed out!", vim.log.levels.ERROR)
 				return
 			end
 
@@ -488,7 +488,7 @@ function M.run_claude_cli(prompt, callback)
 				if return_val ~= 0 then
 					local stderr = table.concat(stderr_results, "\n")
 					if stderr ~= "" then
-						ui.notify("Claude Code error: " .. stderr, vim.log.levels.ERROR)
+						spinner.stop("Claude Code error: " .. stderr, vim.log.levels.ERROR)
 
 						-- Log error response if logging is enabled
 						if config.log_commands then
@@ -501,14 +501,14 @@ function M.run_claude_cli(prompt, callback)
 							end
 						end
 					else
-						ui.notify("Claude Code command failed with exit code " .. return_val, vim.log.levels.ERROR)
+						spinner.stop("Claude Code command failed with exit code " .. return_val, vim.log.levels.ERROR)
 					end
 					return
 				end
 
 				local result = table.concat(stdout_results, "\n")
 				if result == "" then
-					ui.notify("Claude Code returned empty response", vim.log.levels.WARN)
+					spinner.stop("Claude Code returned empty response", vim.log.levels.WARN)
 					return
 				end
 
@@ -555,6 +555,7 @@ function M.run_claude_cli(prompt, callback)
 					end
 				end
 
+				spinner.stop()
 				if callback then
 					callback(result)
 				else

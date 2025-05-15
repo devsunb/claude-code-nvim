@@ -190,50 +190,95 @@ function M.show_result(result, operation_type)
 	end
 end
 
--- Get selected text from visual mode using modern API
+---@param s string
+---@param index integer
+---@return integer[]
+local function str_widthindex(s, index)
+	if index < 1 or #s < index then
+		-- return full range if index is out of range
+		return { 1, vim.api.nvim_strwidth(s) }
+	end
+
+	local ws, we, b = 0, 0, 1
+	while b <= #s and b <= index do
+		local ch = s:sub(b, b + vim.str_utf_end(s, b))
+		local wch = vim.api.nvim_strwidth(ch)
+		ws = we + 1
+		we = ws + wch - 1
+		b = b + vim.str_utf_end(s, b) + 1
+	end
+
+	return { ws, we }
+end
+
+---@param s string
+---@param index integer
+---@return integer[]
+local function str_wbyteindex(s, index)
+	if index < 1 or vim.api.nvim_strwidth(s) < index then
+		-- return full range if index is out of range
+		return { 1, #s }
+	end
+
+	local b, bs, be, w = 1, 0, 0, 0
+	while b <= #s and w < index do
+		bs = b
+		be = bs + vim.str_utf_end(s, bs)
+		local ch = s:sub(bs, be)
+		local wch = vim.api.nvim_strwidth(ch)
+		w = w + wch
+		b = be + 1
+	end
+
+	return { bs, be }
+end
+
 function M.get_visual_selection()
-	-- Safely get current buffer
-	local bufnr = vim.api.nvim_get_current_buf()
-
-	-- Safely get visual selection marks
-	local ok, visual_start = pcall(vim.api.nvim_buf_get_mark, bufnr, "<")
-	if not ok then
-		M.notify("Error getting visual selection start", vim.log.levels.ERROR)
+	local c_v = vim.api.nvim_replace_termcodes("<C-v>", true, true, true)
+	local modes = { "v", "V", c_v }
+	local mode = vim.fn.mode():sub(1, 1)
+	if not vim.tbl_contains(modes, mode) then
 		return ""
 	end
 
-	local ok2, visual_end = pcall(vim.api.nvim_buf_get_mark, bufnr, ">")
-	if not ok2 then
-		M.notify("Error getting visual selection end", vim.log.levels.ERROR)
-		return ""
+	local _, ls, cs = unpack(vim.fn.getpos("v"))
+	local _, le, ce = unpack(vim.fn.getpos("."))
+	if ls > le or (ls == le and cs > ce) then
+		ls, le = le, ls
+		cs, ce = ce, cs
 	end
 
-	local start_row, start_col = visual_start[1] - 1, visual_start[2]
-	local end_row, end_col = visual_end[1] - 1, visual_end[2]
-
-	-- Handle selection direction (if end is before start, swap them)
-	if end_row < start_row or (end_row == start_row and end_col < start_col) then
-		start_row, end_row = end_row, start_row
-		start_col, end_col = end_col, start_col
-	end
-
-	-- Safely get lines in selection
-	local ok3, lines = pcall(vim.api.nvim_buf_get_lines, bufnr, start_row, end_row + 1, false)
-	if not ok3 or not lines then
-		M.notify("Error getting selected lines", vim.log.levels.ERROR)
-		return ""
-	end
-
+	local lines = vim.api.nvim_buf_get_lines(0, ls - 1, le, false)
 	if #lines == 0 then
 		return ""
 	end
+	ce = math.min(ce, #lines[#lines])
 
-	-- Adjust the first and last lines to only include the selected text
-	if #lines == 1 then
-		lines[1] = string.sub(lines[1], start_col + 1, end_col + 1)
+	if mode == "v" or mode == "V" then
+		if vim.fn.has("nvim-0.10") == 1 then
+			ce = ce + vim.str_utf_end(lines[#lines], ce)
+		end
+		if mode == "v" then
+			if #lines == 1 then
+				return string.sub(lines[1], cs, ce)
+			end
+			lines[1] = string.sub(lines[1], cs)
+			lines[#lines] = string.sub(lines[#lines], 1, ce)
+		end
 	else
-		lines[1] = string.sub(lines[1], start_col + 1)
-		lines[#lines] = string.sub(lines[#lines], 1, end_col + 1)
+		--  TODO: visual block: fix weird behavior when selection include end of line
+		local csw = math.min(str_widthindex(lines[1], cs)[1], str_widthindex(lines[#lines], ce)[1])
+		local cew = math.max(str_widthindex(lines[1], cs)[2], str_widthindex(lines[#lines], ce)[2])
+		for i, line in ipairs(lines) do
+			-- byte index for current line from width index
+			local csl = str_wbyteindex(line, csw)[1]
+			local cel = str_wbyteindex(line, cew)[2]
+			if vim.fn.has("nvim-0.10") == 1 then
+				csl = csl + vim.str_utf_start(line, csl)
+				cel = cel + vim.str_utf_end(line, cel)
+			end
+			lines[i] = string.sub(line, csl, cel)
+		end
 	end
 
 	return table.concat(lines, "\n")

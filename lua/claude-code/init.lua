@@ -71,6 +71,9 @@ local config = {
 
 	-- Is Claude CLI available (set by check_claude_cli)
 	is_available = nil,
+
+	-- Whether to use default keymaps
+	use_default_keymaps = false,
 }
 
 -- Helper function to validate configuration
@@ -169,20 +172,22 @@ function M.register_commands()
 		M.ask_claude(opts.args)
 	end, { nargs = "+", desc = "Ask Claude a question", complete = "file" })
 
-	-- Set up keybindings
-	local map = vim.keymap.set
+	if config.use_default_keymaps then
+		-- Set up keybindings
+		local map = vim.keymap.set
 
-	-- Add keybindings under <leader>a for AI operations
-	map("n", "<leader>ac", "<cmd>ClaudeCommit<CR>", { desc = "[A]I: Generate [C]ommit message" })
-	map("n", "<leader>ap", "<cmd>ClaudePR<CR>", { desc = "[A]I: Generate [P]R description" })
-	map("v", "<leader>ar", "<cmd>ClaudeReview<CR>", { desc = "[A]I: [R]eview code" })
-	map("v", "<leader>ae", "<cmd>ClaudeExplain<CR>", { desc = "[A]I: [E]xplain code" })
-	map("v", "<leader>af", "<cmd>ClaudeRefactor<CR>", { desc = "[A]I: Re[f]actor code" })
-	map("v", "<leader>ad", "<cmd>ClaudeDebug<CR>", { desc = "[A]I: [D]ebug code" })
-	map("v", "<leader>at", "<cmd>ClaudeTest<CR>", { desc = "[A]I: Generate [T]ests" })
-	map("n", "<leader>am", "<cmd>ClaudeMemory<CR>", { desc = "[A]I: Claude [M]emory file" })
-	map("n", "<leader>ao", "<cmd>ClaudeCodebase<CR>", { desc = "[A]I: Codebase [O]verview" })
-	map("n", "<leader>aq", ":Claude ", { desc = "[A]I: Ask Claude [Q]uestion" })
+		-- Add keybindings under <leader>a for AI operations
+		map("n", "<leader>ac", "<cmd>ClaudeCommit<CR>", { desc = "[A]I: Generate [C]ommit message" })
+		map("n", "<leader>ap", "<cmd>ClaudePR<CR>", { desc = "[A]I: Generate [P]R description" })
+		map("v", "<leader>ar", "<cmd>ClaudeReview<CR>", { desc = "[A]I: [R]eview code" })
+		map("v", "<leader>ae", "<cmd>ClaudeExplain<CR>", { desc = "[A]I: [E]xplain code" })
+		map("v", "<leader>af", "<cmd>ClaudeRefactor<CR>", { desc = "[A]I: Re[f]actor code" })
+		map("v", "<leader>ad", "<cmd>ClaudeDebug<CR>", { desc = "[A]I: [D]ebug code" })
+		map("v", "<leader>at", "<cmd>ClaudeTest<CR>", { desc = "[A]I: Generate [T]ests" })
+		map("n", "<leader>am", "<cmd>ClaudeMemory<CR>", { desc = "[A]I: Claude [M]emory file" })
+		map("n", "<leader>ao", "<cmd>ClaudeCodebase<CR>", { desc = "[A]I: Codebase [O]verview" })
+		map("n", "<leader>aq", ":Claude ", { desc = "[A]I: Ask Claude [Q]uestion" })
+	end
 end
 
 -- Get current file path

@@ -87,7 +87,6 @@ local function create_result_buffer(content, filetype)
 	vim.api.nvim_buf_set_option(buf, "filetype", filetype or "markdown")
 
 	-- Add enhanced keybindings
-	local keymap_opts = { noremap = true, silent = true }
 	local keymaps = {
 		{ "n", "q", "<cmd>q<CR>", "Close window" },
 		{ "n", "<Esc>", "<cmd>q<CR>", "Close window" },

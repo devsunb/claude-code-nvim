@@ -66,11 +66,13 @@ function M.setup(config)
 		desc = "List all Claude templates",
 	})
 
-	-- Create keybindings for template management
-	local map = vim.keymap.set
-	map("n", "<leader>ate", "<cmd>ClaudeTemplateEdit<CR>", { desc = "[A]I: [T]emplate [E]dit" })
-	map("n", "<leader>atr", "<cmd>ClaudeTemplateReset<CR>", { desc = "[A]I: [T]emplate [R]eset" })
-	map("n", "<leader>atl", "<cmd>ClaudeTemplateList<CR>", { desc = "[A]I: [T]emplate [L]ist" })
+	if config.use_default_keymaps then
+		-- Create keybindings for template management
+		local map = vim.keymap.set
+		map("n", "<leader>ate", "<cmd>ClaudeTemplateEdit<CR>", { desc = "[A]I: [T]emplate [E]dit" })
+		map("n", "<leader>atr", "<cmd>ClaudeTemplateReset<CR>", { desc = "[A]I: [T]emplate [R]eset" })
+		map("n", "<leader>atl", "<cmd>ClaudeTemplateList<CR>", { desc = "[A]I: [T]emplate [L]ist" })
+	end
 end
 
 return M

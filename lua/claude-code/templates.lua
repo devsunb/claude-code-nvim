@@ -4,11 +4,17 @@
 local ui = require("claude-code.ui")
 
 local M = {}
+local config = {}
+
+-- Configure module with user options
+function M.setup(global_config)
+	-- Store reference to global config
+	config = global_config
+end
 
 -- Get user config directory for optional custom templates
 local function get_user_template_dir()
-	local config_dir = vim.fn.stdpath("config")
-	return vim.fn.expand(config_dir .. "/templates/claude-code")
+	return config.templates_path
 end
 
 -- Load a custom template if it exists, otherwise return the default

@@ -21,6 +21,9 @@ local config = {
 	-- File path for custom CLAUDE.md memory file
 	memory_path = vim.fn.expand("~/.claude/CLAUDE.md"),
 
+	-- Path to custom templates
+	templates_path = vim.fn.expand(vim.fn.stdpath("config") .. "/templates/claude"),
+
 	-- Whether to use a floating window for output (true) or buffer (false)
 	use_floating = true,
 
@@ -119,6 +122,7 @@ function M.setup(opts)
 	-- Initialize submodules with shared config
 	cli.setup(config)
 	commands.setup(config)
+	templates.setup(config)
 	ui.setup(config)
 
 	-- Ensure required dependencies are available

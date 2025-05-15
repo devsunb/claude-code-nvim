@@ -186,7 +186,7 @@ function M.register_commands()
 		map("v", "<leader>at", "<cmd>ClaudeTest<CR>", { desc = "[A]I: Generate [T]ests" })
 		map("n", "<leader>am", "<cmd>ClaudeMemory<CR>", { desc = "[A]I: Claude [M]emory file" })
 		map("n", "<leader>ao", "<cmd>ClaudeCodebase<CR>", { desc = "[A]I: Codebase [O]verview" })
-		map("n", "<leader>aq", ":Claude ", { desc = "[A]I: Ask Claude [Q]uestion" })
+		map("n", "<leader>aa", ":Claude ", { desc = "[A]I: [A]sk to Claude" })
 	end
 end
 

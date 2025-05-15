@@ -1,6 +1,8 @@
 -- Claude Code commands
 -- Provides user commands for template management and other utilities
 
+local ui = require("claude-code.ui")
+
 local M = {}
 local templates = require("claude-code.templates")
 
@@ -59,7 +61,7 @@ function M.setup(config)
 		for _, name in ipairs(available) do
 			msg = msg .. "- " .. name .. "\n"
 		end
-		vim.notify(msg, vim.log.levels.INFO)
+		ui.notify(msg, vim.log.levels.INFO)
 	end, {
 		desc = "List all Claude templates",
 	})

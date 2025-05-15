@@ -1,6 +1,8 @@
 -- Claude Code CLI interactions
 -- Handles running commands and processing results
 
+local ui = require("claude-code.ui")
+
 local M = {}
 local config = {}
 
@@ -27,7 +29,7 @@ end
 local function validate_option(key, value, valid_options, error_msg)
 	if value ~= nil and not vim.tbl_contains(valid_options, value) then
 		vim.schedule(function()
-			vim.notify(error_msg, vim.log.levels.ERROR)
+			ui.notify(error_msg, vim.log.levels.ERROR)
 		end)
 		return false
 	end
@@ -41,7 +43,7 @@ local function validate_config(cfg)
 	-- Check claude_path is a string
 	if cfg.claude_path ~= nil and type(cfg.claude_path) ~= "string" then
 		vim.schedule(function()
-			vim.notify("claude_path must be a string", vim.log.levels.ERROR)
+			ui.notify("claude_path must be a string", vim.log.levels.ERROR)
 		end)
 		valid = false
 	end
@@ -58,7 +60,7 @@ local function validate_config(cfg)
 	-- Check timeout is a positive number
 	if type(cfg.timeout) ~= "number" or cfg.timeout <= 0 then
 		vim.schedule(function()
-			vim.notify("timeout must be a positive number", vim.log.levels.ERROR)
+			ui.notify("timeout must be a positive number", vim.log.levels.ERROR)
 		end)
 		valid = false
 	end
@@ -100,7 +102,7 @@ function M.setup(opts, global_config)
 	-- Validate configuration
 	if not validate_config(config) then
 		vim.schedule(function()
-			vim.notify(
+			ui.notify(
 				"Claude Code CLI configuration has errors. Some features may not work correctly.",
 				vim.log.levels.WARN
 			)
@@ -111,7 +113,7 @@ function M.setup(opts, global_config)
 	if config.log_commands then
 		local log_path = config.log_file or (vim.fn.stdpath("cache") .. "/claude_cli.log")
 		vim.schedule(function()
-			vim.notify("Claude CLI command logging enabled. Log file: " .. log_path, vim.log.levels.INFO)
+			ui.notify("Claude CLI command logging enabled. Log file: " .. log_path, vim.log.levels.DEBUG)
 		end)
 	end
 end
@@ -124,7 +126,7 @@ function M.check_claude_cli()
 	local timeout_timer = vim.loop.new_timer()
 	if not timeout_timer then
 		vim.schedule(function()
-			vim.notify("Failed to create timer for Claude CLI check", vim.log.levels.ERROR)
+			ui.notify("Failed to create timer for Claude CLI check", vim.log.levels.ERROR)
 			config.is_available = false
 		end)
 		return
@@ -135,7 +137,7 @@ function M.check_claude_cli()
 		vim.schedule(function()
 			timeout_timer:stop()
 			timeout_timer:close()
-			vim.notify("Claude CLI version check timed out", vim.log.levels.WARN)
+			ui.notify("Claude CLI version check timed out", vim.log.levels.WARN)
 			config.is_available = false
 		end)
 	end)
@@ -149,9 +151,9 @@ function M.check_claude_cli()
 			timeout_timer:close()
 
 			vim.schedule(function()
-				vim.notify("command : " .. config.claude_path)
+				ui.notify("command : " .. config.claude_path, vim.log.levels.DEBUG)
 				if return_val ~= 0 then
-					vim.notify(
+					ui.notify(
 						"Claude Code CLI not found. Make sure it's installed and in your PATH.",
 						vim.log.levels.WARN
 					)
@@ -162,7 +164,7 @@ function M.check_claude_cli()
 					if version then
 						-- Compare with minimum required version
 						if compare_versions(version, config.min_version) < 0 then
-							vim.notify(
+							ui.notify(
 								string.format(
 									"Claude Code CLI version %s is below required minimum %s",
 									version,
@@ -173,10 +175,10 @@ function M.check_claude_cli()
 							config.is_available = false
 						else
 							config.is_available = true
-							vim.notify("Claude Code CLI detected: " .. output, vim.log.levels.INFO)
+							ui.notify("Claude Code CLI detected: " .. output, vim.log.levels.DEBUG)
 						end
 					else
-						vim.notify("Claude Code CLI version not detected: " .. output, vim.log.levels.WARN)
+						ui.notify("Claude Code CLI version not detected: " .. output, vim.log.levels.WARN)
 						config.is_available = false
 					end
 				end
@@ -201,14 +203,14 @@ function M.get_git_diff()
 		on_stderr = function(_, data)
 			if data and data ~= "" then
 				vim.schedule(function()
-					vim.notify("Git error: " .. data, vim.log.levels.ERROR)
+					ui.notify("Git error: " .. data, vim.log.levels.ERROR)
 				end)
 			end
 		end,
 		on_exit = function(_, code)
 			if code > 0 then
 				vim.schedule(function()
-					vim.notify("Git command failed with code " .. code, vim.log.levels.ERROR)
+					ui.notify("Git command failed with code " .. code, vim.log.levels.ERROR)
 				end)
 			end
 		end,
@@ -243,7 +245,7 @@ function M.get_pr_diff(base_branch)
 		on_exit = function(_, code)
 			if code > 0 and #error_output > 0 then
 				vim.schedule(function()
-					vim.notify("Git error: " .. table.concat(error_output, "\n"), vim.log.levels.ERROR)
+					ui.notify("Git error: " .. table.concat(error_output, "\n"), vim.log.levels.ERROR)
 				end)
 			end
 		end,
@@ -357,7 +359,7 @@ end
 function M.run_claude_cli(prompt, callback)
 	if not prompt or prompt == "" then
 		vim.schedule(function()
-			vim.notify("Empty prompt provided", vim.log.levels.ERROR)
+			ui.notify("Empty prompt provided", vim.log.levels.ERROR)
 		end)
 		return
 	end
@@ -365,7 +367,7 @@ function M.run_claude_cli(prompt, callback)
 	-- Skip if CLI not available
 	if config.is_available == false then
 		vim.schedule(function()
-			vim.notify("Claude Code CLI is not available. Please check installation.", vim.log.levels.ERROR)
+			ui.notify("Claude Code CLI is not available. Please check installation.", vim.log.levels.ERROR)
 		end)
 		return
 	end
@@ -374,7 +376,7 @@ function M.run_claude_cli(prompt, callback)
 	local claude_exists = vim.fn.executable(config.claude_path) == 1
 	if not claude_exists then
 		vim.schedule(function()
-			vim.notify("Claude Code CLI not found at: " .. config.claude_path, vim.log.levels.ERROR)
+			ui.notify("Claude Code CLI not found at: " .. config.claude_path, vim.log.levels.ERROR)
 		end)
 		return
 	end
@@ -431,7 +433,7 @@ function M.run_claude_cli(prompt, callback)
 
 	-- Show initial notification
 	vim.schedule(function()
-		vim.notify("Running Claude Code...", vim.log.levels.INFO)
+		ui.notify("Running Claude Code...", vim.log.levels.INFO)
 	end)
 
 	-- Store both stdout and stderr
@@ -446,7 +448,7 @@ function M.run_claude_cli(prompt, callback)
 		timeout_timer:start(config.timeout * 1000, 0, function()
 			timed_out = true
 			vim.schedule(function()
-				vim.notify("Claude Code request timed out after " .. config.timeout .. " seconds", vim.log.levels.ERROR)
+				ui.notify("Claude Code request timed out after " .. config.timeout .. " seconds", vim.log.levels.ERROR)
 			end)
 
 			-- Clean up the job (it will trigger on_exit)
@@ -455,7 +457,7 @@ function M.run_claude_cli(prompt, callback)
 		end)
 	else
 		vim.schedule(function()
-			vim.notify("Failed to create timer for Claude command", vim.log.levels.WARN)
+			ui.notify("Failed to create timer for Claude command", vim.log.levels.WARN)
 		end)
 	end
 
@@ -486,7 +488,7 @@ function M.run_claude_cli(prompt, callback)
 				if return_val ~= 0 then
 					local stderr = table.concat(stderr_results, "\n")
 					if stderr ~= "" then
-						vim.notify("Claude Code error: " .. stderr, vim.log.levels.ERROR)
+						ui.notify("Claude Code error: " .. stderr, vim.log.levels.ERROR)
 
 						-- Log error response if logging is enabled
 						if config.log_commands then
@@ -499,14 +501,14 @@ function M.run_claude_cli(prompt, callback)
 							end
 						end
 					else
-						vim.notify("Claude Code command failed with exit code " .. return_val, vim.log.levels.ERROR)
+						ui.notify("Claude Code command failed with exit code " .. return_val, vim.log.levels.ERROR)
 					end
 					return
 				end
 
 				local result = table.concat(stdout_results, "\n")
 				if result == "" then
-					vim.notify("Claude Code returned empty response", vim.log.levels.WARN)
+					ui.notify("Claude Code returned empty response", vim.log.levels.WARN)
 					return
 				end
 
@@ -538,7 +540,7 @@ function M.run_claude_cli(prompt, callback)
 							result = parsed.result
 							-- Optionally show cost/timing info
 							if parsed.cost_usd then
-								vim.notify(
+								ui.notify(
 									string.format(
 										"Claude request cost: $%.6f, time: %dms",
 										parsed.cost_usd,
@@ -549,7 +551,7 @@ function M.run_claude_cli(prompt, callback)
 							end
 						end
 					else
-						vim.notify("Failed to parse JSON response", vim.log.levels.WARN)
+						ui.notify("Failed to parse JSON response", vim.log.levels.WARN)
 					end
 				end
 

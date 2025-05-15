@@ -1,6 +1,8 @@
 -- Claude Code templates for different AI operations
 -- This module provides templates that can be customized by users
 
+local ui = require("claude-code.ui")
+
 local M = {}
 
 -- Get user config directory for optional custom templates
@@ -173,7 +175,7 @@ function M.ensure_template_dir()
 		-- Create directory
 		local ok, err = pcall(vim.fn.mkdir, template_dir, "p")
 		if not ok then
-			vim.notify("Failed to create template directory: " .. err, vim.log.levels.ERROR)
+			ui.notify("Failed to create template directory: " .. err, vim.log.levels.ERROR)
 			return false
 		end
 		return true
@@ -195,7 +197,7 @@ function M.save_custom_template(name, content)
 	-- Write template to file
 	local f = io.open(template_file, "w")
 	if not f then
-		vim.notify("Failed to create custom template file", vim.log.levels.ERROR)
+		ui.notify("Failed to create custom template file", vim.log.levels.ERROR)
 		return false
 	end
 
@@ -205,7 +207,7 @@ function M.save_custom_template(name, content)
 	-- Clear cached template to load the new one
 	rawset(M, name, nil)
 
-	vim.notify("Saved custom template: " .. name, vim.log.levels.INFO)
+	ui.notify("Saved custom template: " .. name, vim.log.levels.INFO)
 	return true
 end
 
@@ -213,7 +215,7 @@ end
 function M.edit_template(name)
 	-- Check if template exists
 	if not default_templates[name] then
-		vim.notify("Template not found: " .. name, vim.log.levels.ERROR)
+		ui.notify("Template not found: " .. name, vim.log.levels.ERROR)
 		return
 	end
 
@@ -231,7 +233,7 @@ function M.edit_template(name)
 			f:write(default_templates[name])
 			f:close()
 		else
-			vim.notify("Failed to create template file", vim.log.levels.ERROR)
+			ui.notify("Failed to create template file", vim.log.levels.ERROR)
 			return
 		end
 	else
@@ -270,7 +272,7 @@ end
 function M.reset_template(name)
 	-- Check if template exists in defaults
 	if not default_templates[name] then
-		vim.notify("Default template not found: " .. name, vim.log.levels.ERROR)
+		ui.notify("Default template not found: " .. name, vim.log.levels.ERROR)
 		return false
 	end
 
@@ -283,7 +285,7 @@ function M.reset_template(name)
 	-- Clear cached template
 	rawset(M, name, nil)
 
-	vim.notify("Reset template to default: " .. name, vim.log.levels.INFO)
+	ui.notify("Reset template to default: " .. name, vim.log.levels.INFO)
 	return true
 end
 

@@ -14,9 +14,11 @@ end
 -- Helper function for safe notifications
 function M.notify(msg, level)
 	level = level or vim.log.levels.INFO
-	vim.schedule(function()
-		vim.notify(msg, level)
-	end)
+	if config.debug_mode or level > vim.log.levels.DEBUG then
+		vim.schedule(function()
+			vim.notify(msg, level)
+		end)
+	end
 end
 
 -- Clean up buffer resources

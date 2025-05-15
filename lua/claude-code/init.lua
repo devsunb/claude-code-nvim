@@ -117,9 +117,9 @@ function M.setup(opts)
 	end
 
 	-- Initialize submodules with shared config
-	cli.setup(opts, config)
-	ui.setup(opts, config)
+	cli.setup(config)
 	commands.setup(config)
+	ui.setup(config)
 
 	-- Ensure required dependencies are available
 	local has_plenary, _ = pcall(require, "plenary")

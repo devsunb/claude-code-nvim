@@ -6,7 +6,7 @@ local config = {}
 local buffers = {} -- Track created buffers for proper cleanup
 
 -- Configure module with user options
-function M.setup(opts, global_config)
+function M.setup(global_config)
 	-- Store reference to global config
 	config = global_config
 end

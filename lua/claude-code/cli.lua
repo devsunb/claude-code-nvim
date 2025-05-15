@@ -95,7 +95,7 @@ local function create_secure_tempfile(content)
 end
 
 -- Configure module with user options
-function M.setup(opts, global_config)
+function M.setup(global_config)
 	-- Store reference to global config
 	config = global_config
 
